@@ -1,30 +1,20 @@
-# Python
+# Ignore Python cache files
 __pycache__/
-*.py[cod]
-*.so
-*.egg
-*.egg-info/
-dist/
-build/
+*.pyc
+*.pyo
 
-# Jupyter / VSCode
-.ipynb_checkpoints/
-.vscode/
-*.code-workspace
+# Ignore virtual environment
+venv/
 
-# System
+# Ignore data files
+data/events/
+data/matches/
+data/lineups/
+data/three-sixty/
+
+# Ignore generated Pedri matches file
+pedri_matches.json
+
+# Ignore OS metadata files
 .DS_Store
 Thumbs.db
-
-# Virtual environment
-venv/
-.env/
-.venv/
-
-# Data
-data/raw/
-data/tmp/
-*.csv
-*.json
-*.zip
-*.tar.gz
