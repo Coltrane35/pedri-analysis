@@ -1,20 +1,27 @@
-# Ignore Python cache files
+# Ignore Python cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 
 # Ignore virtual environment
 venv/
 
-# Ignore data files
-data/events/
-data/matches/
-data/lineups/
-data/three-sixty/
+# Ignore VSCode settings (optional but recommended)
+.vscode/
 
-# Ignore generated Pedri matches file
-pedri_matches.json
-
-# Ignore OS metadata files
+# Ignore system files
 .DS_Store
 Thumbs.db
+
+# Ignore data folders (raw data)
+data/events/
+data/lineups/
+data/matches/
+data/three-sixty/
+
+# Ignore temporary output file
+pedri_matches.json
+
+# Allow metadata & configs
+!data/competitions.json
