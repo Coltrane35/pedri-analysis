@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Jupyter / VSCode
+.ipynb_checkpoints/
+.vscode/
+*.code-workspace
+
+# System
+.DS_Store
+Thumbs.db
+
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# Data
+data/raw/
+data/tmp/
+*.csv
+*.json
+*.zip
+*.tar.gz
