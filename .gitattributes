@@ -1,0 +1,31 @@
+# Domyślnie traktuj pliki jako tekst i wymuś LF (lepsze cross-platform)
+*               text=auto eol=lf
+
+# Windowsowe skrypty z CRLF
+*.ps1           text eol=crlf
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+
+# Skrypty shellowe z LF
+*.sh            text eol=lf
+
+# Typowe pliki tekstowe – LF dla czytelnych diffów
+*.py            text eol=lf
+*.json          text eol=lf
+*.csv           text eol=lf
+*.md            text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.toml          text eol=lf
+*.txt           text eol=lf
+
+# Grafiki/binary – bez normalizacji, bez diffów
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.pdf           binary
+
+# Notatniki Jupyter – traktuj jako binarne (ogranicza „szum” w diffach)
+*.ipynb         binary

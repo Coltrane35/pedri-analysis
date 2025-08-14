@@ -33,3 +33,6 @@ pedri_matches.json
 # outputs/
 # *.png
 # *.csv
+
+# do not track compat alias
+outputs/csv/pedri_per_match_stats.csv
