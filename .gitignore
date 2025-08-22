@@ -36,3 +36,6 @@ pedri_matches.json
 
 # do not track compat alias
 outputs/csv/pedri_per_match_stats.csv
+
+# local env
+.env
