@@ -1,0 +1,60 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run: automation/run_all.py",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/automation/run_all.py",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder};${workspaceFolder}/core;${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run: core/pedri_analysis.py",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/core/pedri_analysis.py",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder};${workspaceFolder}/core"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run: core/pedri_profile.py",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/core/pedri_profile.py",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder};${workspaceFolder}/core"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run: core/pedri_inspect_lineups.py",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/core/pedri_inspect_lineups.py",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder};${workspaceFolder}/core"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run: core/find_pedri_matches_in_events.py",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/core/find_pedri_matches_in_events.py",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder};${workspaceFolder}/core"
+      },
+      "console": "integratedTerminal"
+    }
+  ]
+}

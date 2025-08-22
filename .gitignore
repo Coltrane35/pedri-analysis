@@ -1,27 +1,38 @@
-# Ignore Python cache and compiled files
+# --- Python cache & build artifacts ---
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.egg-info/
+*.egg
+build/
+dist/
 
-# Ignore virtual environment
+# --- Virtual environments ---
 venv/
 
-# Ignore VSCode settings (optional but recommended)
-.vscode/
-
-# Ignore system files
+# --- System files ---
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Ignore data folders (raw data)
+# --- Raw data (do not commit large event dumps) ---
 data/events/
 data/lineups/
 data/matches/
 data/three-sixty/
+!data/competitions.json  # keep metadata/configs if needed
 
-# Ignore temporary output file
+# --- Project-specific temporary files ---
 pedri_matches.json
 
-# Allow metadata & configs
-!data/competitions.json
+# --- VS Code & outputs ---
+# INTENCJONALNIE nie ignorujemy .vscode/ ani outputs/ (chcemy je commitować)
+# Jeśli kiedyś zechcesz je wykluczyć, odkomentuj poniższe:
+# .vscode/
+# outputs/
+# *.png
+# *.csv
+
+# do not track compat alias
+outputs/csv/pedri_per_match_stats.csv
