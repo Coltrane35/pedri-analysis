@@ -1,41 +1,36 @@
-# --- Python cache & build artifacts ---
+﻿# Python caches / compiled
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 *.pyd
-*.egg-info/
-*.egg
-build/
-dist/
+*.so
+*.dll
 
-# --- Virtual environments ---
+# Virtual env
 venv/
 
-# --- System files ---
+# VS Code
+.vscode/
+
+# OS junk
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# --- Raw data (do not commit large event dumps) ---
+# Local env (trzymamy tylko .env.example)
+.env
+
+# Raw data (nie wrzucamy do repo)
 data/events/
 data/lineups/
 data/matches/
 data/three-sixty/
-!data/competitions.json  # keep metadata/configs if needed
+# jeśli chcesz trzymać metadane:
+!data/competitions.json
 
-# --- Project-specific temporary files ---
-pedri_matches.json
-
-# --- VS Code & outputs ---
-# INTENCJONALNIE nie ignorujemy .vscode/ ani outputs/ (chcemy je commitować)
-# Jeśli kiedyś zechcesz je wykluczyć, odkomentuj poniższe:
-# .vscode/
-# outputs/
-# *.png
-# *.csv
-
-# do not track compat alias
+# Outputs – alias kompatybilności (nie śledzić)
 outputs/csv/pedri_per_match_stats.csv
 
-# local env
-.env
+# Notebooks cache
+**/.ipynb_checkpoints/
+
+# Logs
+logs/
