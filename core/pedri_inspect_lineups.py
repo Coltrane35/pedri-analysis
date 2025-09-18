@@ -6,16 +6,19 @@ from collections import Counter, defaultdict
 from typing import Dict, Any, Optional, Iterator
 
 from utils.io_compat import setup_stdout_utf8, print_safe
+
 setup_stdout_utf8()
 
 PEDRI_ID = 30486
 EVENTS_DIR = Path("data/events")
+
 
 def iter_event_files() -> Iterator[Path]:
     if not EVENTS_DIR.exists():
         print_safe(f"⚠️  Katalog {EVENTS_DIR} nie istnieje.")
         return iter(())
     return (p for p in sorted(EVENTS_DIR.glob("*.json")) if p.is_file())
+
 
 def load_events(path: Path) -> Optional[list[Dict[str, Any]]]:
     try:
@@ -27,6 +30,7 @@ def load_events(path: Path) -> Optional[list[Dict[str, Any]]]:
         print_safe(f"⚠️  Nie udało się wczytać {path.name}: {e}")
     return None
 
+
 def extract_match_id(events, fallback: str) -> str:
     try:
         mid = events[0].get("match_id")
@@ -35,6 +39,7 @@ def extract_match_id(events, fallback: str) -> str:
     except Exception:
         pass
     return Path(fallback).stem
+
 
 def pedri_position_in_starting_xi(events) -> Optional[str]:
     for ev in events:
@@ -46,6 +51,7 @@ def pedri_position_in_starting_xi(events) -> Optional[str]:
             if pid == PEDRI_ID:
                 return (pl.get("position") or {}).get("name", "Unknown")
     return None
+
 
 def main() -> None:
     print_safe("Analizuję pozycje Pedriego w Starting XI...")
@@ -75,6 +81,7 @@ def main() -> None:
         print_safe(f" - {pos}: {preview}{more}")
 
     print_safe(f"\n✅ Zakończono. Przeskanowano plików: {scanned}")
+
 
 if __name__ == "__main__":
     main()

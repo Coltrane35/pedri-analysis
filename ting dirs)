@@ -1,0 +1,38 @@
+name: Lint
+
+on:
+  push:
+    branches: [ main, feature/*, chore/*, ci/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black
+
+      - name: Run flake8 (only existing dirs)
+        run: |
+          set -e
+          for d in core automation; do
+            if [ -d "" ]; then flake8 --config .flake8 ""; fi
+          done
+
+      - name: Run black check (only existing dirs)
+        run: |
+          set -e
+          paths=""
+          for d in core automation; do
+            [ -d "" ] && paths=" "
+          done
+          if [ -n "" ]; then black --check ; else echo "No code dirs found"; fi
