@@ -50,7 +50,9 @@ def find_script(name: str) -> Path | None:
 def run_script(script_name: str):
     script_path = find_script(script_name)
     if not script_path:
-        print(f"ℹ️  Pomijam: {script_name} (nie znaleziono w {', '.join(str(d) for d in CANDIDATE_DIRS)})")
+        print(
+            f"ℹ️  Pomijam: {script_name} (nie znaleziono w {', '.join(str(d) for d in CANDIDATE_DIRS)})"
+        )
         return
 
     env = os.environ.copy()

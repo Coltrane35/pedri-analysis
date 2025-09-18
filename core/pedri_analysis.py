@@ -110,7 +110,10 @@ def is_pressure(ev):
 
 
 def is_tackle(ev):
-    return safe_get(ev, ("type", "name")) == "Duel" and safe_get(ev, ("duel", "type", "name")) == "Tackle"
+    return (
+        safe_get(ev, ("type", "name")) == "Duel"
+        and safe_get(ev, ("duel", "type", "name")) == "Tackle"
+    )
 
 
 def is_interception(ev):
@@ -124,7 +127,10 @@ def is_ball_recovery(ev):
 def is_key_pass(ev):
     if not is_pass(ev):
         return False
-    return safe_get(ev, ("pass", "shot_assist")) is True or safe_get(ev, ("pass", "assisted_shot_id")) is not None
+    return (
+        safe_get(ev, ("pass", "shot_assist")) is True
+        or safe_get(ev, ("pass", "assisted_shot_id")) is not None
+    )
 
 
 def get_loc(ev):
@@ -238,10 +244,16 @@ def compute_stats_for_match(events, file_hint: str | None = None):
     prog_pass = sum(is_progressive_pass(e) for e in pedri_events)
 
     shots = sum(is_shot(e) for e in pedri_events)
-    xg = sum(safe_get(e, ("shot", "statsbomb_xg"), 0.0) or 0.0 for e in pedri_events if is_shot(e))
+    xg = sum(
+        safe_get(e, ("shot", "statsbomb_xg"), 0.0) or 0.0
+        for e in pedri_events
+        if is_shot(e)
+    )
 
     drib_att = sum(is_dribble(e) for e in pedri_events)
-    drib_succ = sum(1 for e in pedri_events if is_dribble(e) and dribble_outcome(e) == "Complete")
+    drib_succ = sum(
+        1 for e in pedri_events if is_dribble(e) and dribble_outcome(e) == "Complete"
+    )
 
     carries = sum(is_carry(e) for e in pedri_events)
     carry_m = sum(carry_distance(e) for e in pedri_events)
@@ -340,7 +352,9 @@ def _annotate_bars(ax):
             continue
 
 
-def plot_bar(series: pd.Series, title: str, xlabel: str, outname: str, top_n: int = TOP_N_DEFAULT):
+def plot_bar(
+    series: pd.Series, title: str, xlabel: str, outname: str, top_n: int = TOP_N_DEFAULT
+):
     s = series.dropna().copy()
     if len(s) == 0:
         print(f"⚠️  No data for {title}")
@@ -542,7 +556,9 @@ def _plot_pass_map(xs, ys, xe, ye, title, outname, alpha=0.6, width=0.002):
     dy = ye - ys
     fig, ax = plt.subplots(figsize=(11, 6.5))
     _draw_pitch(ax)
-    ax.quiver(xs, ys, dx, dy, angles="xy", scale_units="xy", scale=1, width=width, alpha=alpha)
+    ax.quiver(
+        xs, ys, dx, dy, angles="xy", scale_units="xy", scale=1, width=width, alpha=alpha
+    )
     ax.set_title(title)
     ax.grid(False)
     plt.tight_layout()
@@ -613,7 +629,9 @@ def main():
 
     if "match_date" in df.columns:
         df["_sort_dt"] = df["match_date"].apply(parse_dt)
-        df = df.sort_values(by=["_sort_dt", "match_id"], ascending=True).drop(columns=["_sort_dt"], errors="ignore")
+        df = df.sort_values(by=["_sort_dt", "match_id"], ascending=True).drop(
+            columns=["_sort_dt"], errors="ignore"
+        )
 
     # ---- CSV exports ----
     basic_cols = [
@@ -649,7 +667,9 @@ def main():
         "passes_attempted": int(df["passes_attempted"].sum()),
         "passes_completed": int(df["passes_completed"].sum()),
         "pass_pct_weighted": (
-            round(100.0 * df["passes_completed"].sum() / df["passes_attempted"].sum(), 2)
+            round(
+                100.0 * df["passes_completed"].sum() / df["passes_attempted"].sum(), 2
+            )
             if df["passes_attempted"].sum()
             else 0.0
         ),
