@@ -6,6 +6,7 @@ from collections import Counter
 PEDRI_ID = 30486
 EVENTS_DIR = os.path.join("data", "events")
 
+
 def load(path):
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -14,13 +15,16 @@ def load(path):
         print(f"⚠️  {path}: {e}")
         return []
 
+
 def main():
     files = sorted(glob.glob(os.path.join(EVENTS_DIR, "*.json")))
     files += sorted(glob.glob(os.path.join(EVENTS_DIR, "**", "*.json"), recursive=True))
     matches = 0
     positions = Counter()
 
-    print(f"🔍 Analizujemy potencjalne mecze Pedriego na podstawie events… ({len(files)} plików)")
+    print(
+        f"🔍 Analizujemy potencjalne mecze Pedriego na podstawie events… ({len(files)} plików)"
+    )
     for fp in files:
         data = load(fp)
         if not isinstance(data, list):
@@ -44,6 +48,7 @@ def main():
         print("🧭 Pozycje (liczba meczów):")
         for k, v in positions.most_common():
             print(f"  - {k}: {v}")
+
 
 if __name__ == "__main__":
     main()

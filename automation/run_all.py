@@ -19,16 +19,17 @@ VENV_PY = ROOT / "venv" / "Scripts" / "python.exe"
 PY = str(VENV_PY) if VENV_PY.exists() else sys.executable
 
 SCRIPTS = [
-    "pedri_inspect_lineups.py",        # optional
+    "pedri_inspect_lineups.py",  # optional
     "pedri_profile.py",
-    "find_pedri_matches_in_events.py", # optional
+    "find_pedri_matches_in_events.py",  # optional
     "pedri_analysis.py",
 ]
 
 CANDIDATE_DIRS = [
-    ROOT / "core",   # prefer core/
-    ROOT,            # fallback (root)
+    ROOT / "core",  # prefer core/
+    ROOT,  # fallback (root)
 ]
+
 
 def is_within(path: Path, base: Path) -> bool:
     try:
@@ -37,6 +38,7 @@ def is_within(path: Path, base: Path) -> bool:
     except Exception:
         return False
 
+
 def find_script(name: str) -> Path | None:
     for base in CANDIDATE_DIRS:
         p = (base / name).resolve()
@@ -44,10 +46,13 @@ def find_script(name: str) -> Path | None:
             return p
     return None
 
+
 def run_script(script_name: str):
     script_path = find_script(script_name)
     if not script_path:
-        print(f"ℹ️  Pomijam: {script_name} (nie znaleziono w {', '.join(str(d) for d in CANDIDATE_DIRS)})")
+        print(
+            f"ℹ️  Pomijam: {script_name} (nie znaleziono w {', '.join(str(d) for d in CANDIDATE_DIRS)})"
+        )
         return
 
     env = os.environ.copy()
@@ -63,12 +68,14 @@ def run_script(script_name: str):
         sys.exit(proc.returncode)
     print("✅ OK")
 
+
 def main():
     print(f"🔧 Project root: {ROOT}")
     print(f"🐍 Interpreter:  {PY}")
     for s in SCRIPTS:
         run_script(s)
     print("\n🎯 Pipeline finished.")
+
 
 if __name__ == "__main__":
     main()
