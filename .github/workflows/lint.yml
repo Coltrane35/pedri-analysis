@@ -1,4 +1,4 @@
-name: Lint
+﻿name: Lint
 
 on:
   push:
@@ -26,10 +26,14 @@ jobs:
           set -e
           for d in core automation; do
 <<<<<<< HEAD
+<<<<<<< HEAD
             if [ -d "$d" ]; then flake8 --config .flake8 "$d"; fi
 =======
             if [ -d "" ]; then flake8 --config .flake8 ""; fi
 >>>>>>> ba85d35 (CI: use loop over core/automation + --config .flake8; relax rules)
+=======
+            if [ -d "$d" ]; then flake8 --config .flake8 "$d"; fi
+>>>>>>> c3e547c (CI: fix YAML (no duplicate job), no PS expansion, loop only core/automation; enforce .flake8)
           done
 
       - name: Run black check (only existing dirs)
@@ -37,6 +41,7 @@ jobs:
           set -e
           paths=""
           for d in core automation; do
+<<<<<<< HEAD
 <<<<<<< HEAD
             if [ -d "$d" ]; then paths="$paths $d"; fi
           done
@@ -46,3 +51,8 @@ jobs:
           done
           if [ -n "" ]; then black --check ; else echo "No code dirs found"; fi
 >>>>>>> ba85d35 (CI: use loop over core/automation + --config .flake8; relax rules)
+=======
+            if [ -d "$d" ]; then paths="$paths $d"; fi
+          done
+          if [ -n "$paths" ]; then black --check $paths; else echo "No code dirs found"; fi
+>>>>>>> c3e547c (CI: fix YAML (no duplicate job), no PS expansion, loop only core/automation; enforce .flake8)
