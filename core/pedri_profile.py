@@ -22,9 +22,7 @@ def main():
     matches = 0
     positions = Counter()
 
-    print(
-        f"🔍 Analizujemy potencjalne mecze Pedriego na podstawie events… ({len(files)} plików)"
-    )
+    print(f"🔍 Analizujemy potencjalne mecze Pedriego na podstawie events… ({len(files)} plików)")
     for fp in files:
         data = load(fp)
         if not isinstance(data, list):

@@ -52,9 +52,7 @@ def pedri_present_in_any_event(events) -> bool:
 
 
 def main() -> None:
-    print_safe(
-        "Szukam wszystkich meczów, w których Pedri wystąpił (jakikolwiek event Pedriego)..."
-    )
+    print_safe("Szukam wszystkich meczów, w których Pedri wystąpił (jakikolwiek event Pedriego)...")
     matches: Set[str] = set()
     scanned = 0
 
