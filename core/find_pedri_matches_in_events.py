@@ -5,6 +5,7 @@ import json
 from typing import Dict, Any, Optional, Iterator, Set
 
 from utils.io_compat import setup_stdout_utf8, print_safe
+
 setup_stdout_utf8()
 
 PEDRI_ID = 30486
@@ -12,11 +13,13 @@ EVENTS_DIR = Path("data/events")
 OUT_DIR = Path("outputs")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
+
 def iter_event_files() -> Iterator[Path]:
     if not EVENTS_DIR.exists():
         print_safe(f"⚠️  Katalog {EVENTS_DIR} nie istnieje.")
         return iter(())
     return (p for p in sorted(EVENTS_DIR.glob("*.json")) if p.is_file())
+
 
 def load_events(path: Path) -> Optional[list[Dict[str, Any]]]:
     try:
@@ -28,6 +31,7 @@ def load_events(path: Path) -> Optional[list[Dict[str, Any]]]:
         print_safe(f"⚠️  Nie udało się wczytać {path.name}: {e}")
     return None
 
+
 def extract_match_id(events, fallback: str) -> str:
     try:
         mid = events[0].get("match_id")
@@ -37,6 +41,7 @@ def extract_match_id(events, fallback: str) -> str:
         pass
     return Path(fallback).stem
 
+
 def pedri_present_in_any_event(events) -> bool:
     for ev in events:
         player = ev.get("player") or {}
@@ -45,8 +50,11 @@ def pedri_present_in_any_event(events) -> bool:
             return True
     return False
 
+
 def main() -> None:
-    print_safe("Szukam wszystkich meczów, w których Pedri wystąpił (jakikolwiek event Pedriego)...")
+    print_safe(
+        "Szukam wszystkich meczów, w których Pedri wystąpił (jakikolwiek event Pedriego)..."
+    )
     matches: Set[str] = set()
     scanned = 0
 
@@ -68,6 +76,7 @@ def main() -> None:
     print_safe(f"\n🔢 Znaleziono {len(matches)} meczów z udziałem Pedriego.")
     print_safe(f"💾 Zapisano listę do: {out_path}")
     print_safe(f"Przeskanowano plików: {scanned}")
+
 
 if __name__ == "__main__":
     main()

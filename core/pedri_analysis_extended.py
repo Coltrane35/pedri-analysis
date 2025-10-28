@@ -30,8 +30,9 @@ DPI = 240
 FIGSIZE_TREND = (11, 6)
 FIGSIZE_SCATTER = (10, 7)
 FIGSIZE_PITCH = (12, 8)
-HEAT_BINS = (48, 32)     # gęstsza siatka (zamiast 24x16)
+HEAT_BINS = (48, 32)  # gęstsza siatka (zamiast 24x16)
 HEAT_INTERP = "bicubic"  # płynne wygładzanie heatmapy
+
 
 # --------------------
 # Pomocnicze funkcje
@@ -41,7 +42,12 @@ def load_profile(profile_path):
         prof = json.load(f)
     out = {}
     for row in prof:
-        mid = str(row.get("match_id") or row.get("id") or row.get("matchId") or row.get("match"))
+        mid = str(
+            row.get("match_id")
+            or row.get("id")
+            or row.get("matchId")
+            or row.get("match")
+        )
         if not mid:
             continue
         out[mid] = {
@@ -51,6 +57,7 @@ def load_profile(profile_path):
         }
     return out
 
+
 def load_events(match_id):
     path = os.path.join(EVENTS_DIR, f"{match_id}.json")
     if not os.path.exists(path):
@@ -58,9 +65,11 @@ def load_events(match_id):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
 def is_completed_pass(ev):
     p = ev.get("pass")
     return bool(p) and ("outcome" not in p)
+
 
 def distance(a, b):
     if not a or not b:
@@ -69,11 +78,13 @@ def distance(a, b):
     bx, by = float(b[0]), float(b[1])
     return math.dist((ax, ay), (bx, by))
 
+
 def toward_goal_delta(start, end, attacking_left_to_right=True):
     if not start or not end:
         return 0.0
     sx, ex = start[0], end[0]
     return (ex - sx) if attacking_left_to_right else (sx - ex)
+
 
 def infer_attacking_direction(events, team_name):
     """Heurystyka: średnia zmiana x podań celnych w 1. połowie. >=0 → atak w prawo."""
@@ -95,6 +106,7 @@ def infer_attacking_direction(events, team_name):
         return True
     return (sum(deltas) / len(deltas)) >= 0.0
 
+
 def is_progressive_pass(ev, team_attacks_right=True):
     """Progresywne podanie: celne + przybliżenie do bramki >=30% i przesuw x >=10 m."""
     if not is_completed_pass(ev):
@@ -115,12 +127,14 @@ def is_progressive_pass(ev, team_attacks_right=True):
     gain = dist_start - dist_end
     return (dist_start > 0) and (gain >= 0.3 * dist_start)
 
+
 def in_final_third(point, team_attacks_right=True):
     """Tercja ataku względem kierunku ataku w danej połowie."""
     if not point:
         return False
     x = point[0]
     return (x >= 80.0) if team_attacks_right else (x <= 40.0)
+
 
 def in_penalty_area(point, team_attacks_right=True):
     """Pole karne (prostokąt)."""
@@ -131,6 +145,7 @@ def in_penalty_area(point, team_attacks_right=True):
         return (x >= 102.0) and (18.0 <= y <= 62.0)
     else:
         return (x <= 18.0) and (18.0 <= y <= 62.0)
+
 
 def is_deep_completion(ev, team_attacks_right=True):
     """Celne podanie zakończone <20 m od bramki, nie będące dośrodkowaniem."""
@@ -148,6 +163,7 @@ def is_deep_completion(ev, team_attacks_right=True):
         dist_to_goal = max(0.0, end[0] - 0.0)
     return dist_to_goal < 20.0
 
+
 def is_switch_of_play(ev):
     """Zmiana strony: duża zmiana osi Y (>=40 m) + długie podanie (>=30 m) + celne."""
     if not is_completed_pass(ev):
@@ -160,18 +176,22 @@ def is_switch_of_play(ev):
     dist = distance(start, end)
     return (dy >= 40.0) and (dist >= 30.0)
 
+
 def carry_distance(ev):
     c = ev.get("carry")
     if not c:
         return 0.0
     return distance(ev.get("location"), c.get("end_location"))
 
+
 def is_successful_dribble(ev):
     d = ev.get("dribble")
     return bool(d) and ((d.get("outcome") or {}).get("name") == "Complete")
 
+
 def per90(total, minutes):
     return (total / minutes * 90.0) if minutes > 0 else 0.0
+
 
 # --------------------
 # Analiza jednego meczu
@@ -189,7 +209,7 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
     for ev in events:
         if (ev.get("player", {}) or {}).get("id") == PLAYER_ID:
             team_candidates[(ev.get("team", {}) or {}).get("name")] += 1
-    team_name = (team_candidates.most_common(1)[0][0] if team_candidates else pedri_team)
+    team_name = team_candidates.most_common(1)[0][0] if team_candidates else pedri_team
 
     # kierunek ataku (cache per team)
     if team_name not in directions_cache:
@@ -203,7 +223,9 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
             directions_cache[t] = infer_attacking_direction(events, t)
 
     # indeks podań po id (do xA)
-    pass_by_id = {ev.get("id"): ev for ev in events if ev.get("type", {}).get("name") == "Pass"}
+    pass_by_id = {
+        ev.get("id"): ev for ev in events if ev.get("type", {}).get("name") == "Pass"
+    }
 
     # liczniki
     cnt = defaultdict(int)
@@ -235,8 +257,10 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
             continue
 
         period = ev.get("period")
-        tstamp = float(ev.get("minute", 0)) + float(ev.get("second", 0))/60.0
-        team_attacks_right = attacks_right_first_half if period == 1 else (not attacks_right_first_half)
+        tstamp = float(ev.get("minute", 0)) + float(ev.get("second", 0)) / 60.0
+        team_attacks_right = (
+            attacks_right_first_half if period == 1 else (not attacks_right_first_half)
+        )
 
         if etype in ("Miscontrol", "Dispossessed"):
             cnt["turnovers"] += 1
@@ -252,7 +276,11 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
                 pinfo = ev.get("pass") or {}
                 end = pinfo.get("end_location")
 
-                if pinfo.get("assisted_shot_id") or pinfo.get("shot_assist") or pinfo.get("goal_assist"):
+                if (
+                    pinfo.get("assisted_shot_id")
+                    or pinfo.get("shot_assist")
+                    or pinfo.get("goal_assist")
+                ):
                     cnt["key_passes"] += 1
 
                 if ev.get("under_pressure"):
@@ -293,7 +321,9 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
             start = ev.get("location")
             end = (ev.get("carry") or {}).get("end_location")
             if start and end:
-                dx = toward_goal_delta(start, end, attacking_left_to_right=team_attacks_right)
+                dx = toward_goal_delta(
+                    start, end, attacking_left_to_right=team_attacks_right
+                )
                 if dx >= 10.0:
                     cnt["progressive_carries"] += 1
 
@@ -311,14 +341,16 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
         if ev.get("type", {}).get("name") != "Pass":
             continue
         pinfo = ev.get("pass") or {}
-        rec = (pinfo.get("recipient") or {})
+        rec = pinfo.get("recipient") or {}
         if rec.get("id") != PLAYER_ID:
             continue
         team_name_pass = (ev.get("team") or {}).get("name")
         if not team_name_pass:
             continue
         team_attacks_right_src = directions_cache.get(team_name_pass, True)
-        if is_completed_pass(ev) and is_progressive_pass(ev, team_attacks_right=team_attacks_right_src):
+        if is_completed_pass(ev) and is_progressive_pass(
+            ev, team_attacks_right=team_attacks_right_src
+        ):
             cnt["progressive_receptions"] += 1
 
     # 3) pressures after loss — pres w 5s po własnej stracie
@@ -330,11 +362,14 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
         if (ev.get("type") or {}).get("name") != "Pressure":
             continue
         period = ev.get("period")
-        tstamp = float(ev.get("minute", 0)) + float(ev.get("second", 0))/60.0
+        tstamp = float(ev.get("minute", 0)) + float(ev.get("second", 0)) / 60.0
 
         while loss_idx < len(losses_sorted) and (
-            (losses_sorted[loss_idx][0] < period) or
-            (losses_sorted[loss_idx][0] == period and losses_sorted[loss_idx][1] < tstamp - (5.0/60.0))
+            (losses_sorted[loss_idx][0] < period)
+            or (
+                losses_sorted[loss_idx][0] == period
+                and losses_sorted[loss_idx][1] < tstamp - (5.0 / 60.0)
+            )
         ):
             loss_idx += 1
 
@@ -344,8 +379,8 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
         if loss_idx - 1 >= 0:
             candidates.append(losses_sorted[loss_idx - 1])
 
-        for (p_per, p_t) in candidates:
-            if p_per == period and 0.0 <= (tstamp - p_t) <= (5.0/60.0):
+        for p_per, p_t in candidates:
+            if p_per == period and 0.0 <= (tstamp - p_t) <= (5.0 / 60.0):
                 cnt["pressures_after_loss"] += 1
                 break
 
@@ -362,7 +397,6 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
         "match_id": match_id,
         "team": team_name,
         "minutes": round(minutes_played, 1),
-
         # bazowe
         "passes_total": passes_total,
         "passes_completed": passes_completed,
@@ -384,7 +418,6 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
         "progressive_carries": cnt["progressive_carries"],
         "carry_distance": round(acc["carry_distance"], 1),
         "team_total_xg": round(acc["team_total_xg"], 3),
-
         # rozszerzone
         "passes_under_pressure": cnt["passes_under_pressure"],
         "passes_into_final_third": cnt["passes_into_final_third"],
@@ -402,6 +435,7 @@ def analyze_match_extended(match_id, profile_row, directions_cache):
     }
     return row, heat
 
+
 # --------------------
 # Rysowanie (wysoka jakość)
 # --------------------
@@ -409,15 +443,19 @@ def ensure_dir(path):
     if not os.path.isdir(path):
         os.makedirs(path, exist_ok=True)
 
+
 def _save_both(fig, out_png, out_svg):
     fig.tight_layout()
     fig.savefig(out_png, dpi=DPI, bbox_inches="tight")
     fig.savefig(out_svg, bbox_inches="tight")
     plt.close(fig)
 
+
 def _draw_pitch(ax):
     """Rysuje linie boiska 120x80."""
-    ax.add_patch(Rectangle((0, 0), 120, 80, fill=False, linewidth=1.5, antialiased=True))
+    ax.add_patch(
+        Rectangle((0, 0), 120, 80, fill=False, linewidth=1.5, antialiased=True)
+    )
     ax.plot([60, 60], [0, 80], linewidth=1.2)
     center = Circle((60, 40), 9.15, fill=False, linewidth=1.2)
     ax.add_patch(center)
@@ -433,44 +471,74 @@ def _draw_pitch(ax):
     ax.set_xlabel("Długość boiska (x)")
     ax.set_ylabel("Szerokość boiska (y)")
 
+
 def plot_trends(match_rows):
     """Trend KP/90 i PP/90 — większe figury, grubsze linie, siatka."""
     ensure_dir(PLOTS_DIR)
     mins = [r["minutes"] for r in match_rows]
-    kp90 = [(r["key_passes"]/m*90.0) if m>0 else 0.0 for r,m in zip(match_rows, mins)]
-    pp90 = [(r["progressive_passes"]/m*90.0) if m>0 else 0.0 for r,m in zip(match_rows, mins)]
-    x = np.arange(1, len(match_rows)+1)
+    kp90 = [
+        (r["key_passes"] / m * 90.0) if m > 0 else 0.0 for r, m in zip(match_rows, mins)
+    ]
+    pp90 = [
+        (r["progressive_passes"] / m * 90.0) if m > 0 else 0.0
+        for r, m in zip(match_rows, mins)
+    ]
+    x = np.arange(1, len(match_rows) + 1)
 
     fig = plt.figure(figsize=FIGSIZE_TREND)
     ax = fig.add_subplot(111)
-    ax.plot(x, kp90, marker="o", linewidth=2.2, markersize=5, label="Key Passes/90", antialiased=True)
-    ax.plot(x, pp90, marker="s", linewidth=2.2, markersize=5, label="Progressive Passes/90", antialiased=True)
+    ax.plot(
+        x,
+        kp90,
+        marker="o",
+        linewidth=2.2,
+        markersize=5,
+        label="Key Passes/90",
+        antialiased=True,
+    )
+    ax.plot(
+        x,
+        pp90,
+        marker="s",
+        linewidth=2.2,
+        markersize=5,
+        label="Progressive Passes/90",
+        antialiased=True,
+    )
     ax.set_xlabel("Mecz (indeks)")
     ax.set_ylabel("Wartość per 90")
     ax.set_title("Trendy: KP/90 i Progressive Passes/90")
     ax.grid(True, linestyle="--", alpha=0.35)
     ax.legend()
-    _save_both(fig,
-               os.path.join(PLOTS_DIR, "trend_kp_pp_per90.png"),
-               os.path.join(PLOTS_DIR, "trend_kp_pp_per90.svg"))
+    _save_both(
+        fig,
+        os.path.join(PLOTS_DIR, "trend_kp_pp_per90.png"),
+        os.path.join(PLOTS_DIR, "trend_kp_pp_per90.svg"),
+    )
+
 
 def plot_scatter_pp_vs_pc(match_rows):
     """Scatter: PP vs PC — większe DPI, półprzezroczyste markery, obrysy, siatka."""
     ensure_dir(PLOTS_DIR)
     pp = [r["progressive_passes"] for r in match_rows]
     pc = [r["progressive_carries"] for r in match_rows]
-    xa = [max(20.0, r["xa"]*300.0) for r in match_rows]  # większa baza rozmiaru
+    xa = [max(20.0, r["xa"] * 300.0) for r in match_rows]  # większa baza rozmiaru
 
     fig = plt.figure(figsize=FIGSIZE_SCATTER)
     ax = fig.add_subplot(111)
-    ax.scatter(pp, pc, s=xa, alpha=0.55, linewidths=0.8, edgecolors="face", antialiased=True)
+    ax.scatter(
+        pp, pc, s=xa, alpha=0.55, linewidths=0.8, edgecolors="face", antialiased=True
+    )
     ax.set_xlabel("Progressive Passes (per mecz)")
     ax.set_ylabel("Progressive Carries (per mecz)")
     ax.set_title("PP vs PC (rozmiar punktu ~ xA)")
     ax.grid(True, linestyle="--", alpha=0.35)
-    _save_both(fig,
-               os.path.join(PLOTS_DIR, "scatter_pp_vs_pc.png"),
-               os.path.join(PLOTS_DIR, "scatter_pp_vs_pc.svg"))
+    _save_both(
+        fig,
+        os.path.join(PLOTS_DIR, "scatter_pp_vs_pc.png"),
+        os.path.join(PLOTS_DIR, "scatter_pp_vs_pc.svg"),
+    )
+
 
 def plot_heatmap_points(points, title, out_name, bins=HEAT_BINS):
     """Heatmapa 2D na boisku 120x80 z wygładzaniem i pitch overlay."""
@@ -481,15 +549,19 @@ def plot_heatmap_points(points, title, out_name, bins=HEAT_BINS):
     if not points:
         _draw_pitch(ax)
         ax.set_title(f"{title}\n(Brak danych)")
-        _save_both(fig,
-                   os.path.join(PLOTS_DIR, out_name),
-                   os.path.join(PLOTS_DIR, out_name.replace(".png", ".svg")))
+        _save_both(
+            fig,
+            os.path.join(PLOTS_DIR, out_name),
+            os.path.join(PLOTS_DIR, out_name.replace(".png", ".svg")),
+        )
         return
 
     xs = np.array([p[0] for p in points], dtype=float)
     ys = np.array([p[1] for p in points], dtype=float)
 
-    H, xedges, yedges = np.histogram2d(xs, ys, bins=bins, range=[[0, PITCH_X], [0, PITCH_Y]])
+    H, xedges, yedges = np.histogram2d(
+        xs, ys, bins=bins, range=[[0, PITCH_X], [0, PITCH_Y]]
+    )
     H = np.log1p(H)  # kompresja zakresu, lepsza widoczność słabszych obszarów
 
     im = ax.imshow(
@@ -497,7 +569,7 @@ def plot_heatmap_points(points, title, out_name, bins=HEAT_BINS):
         origin="lower",
         extent=[0, PITCH_X, 0, PITCH_Y],
         aspect="equal",
-        interpolation=HEAT_INTERP
+        interpolation=HEAT_INTERP,
     )
 
     _draw_pitch(ax)
@@ -506,9 +578,12 @@ def plot_heatmap_points(points, title, out_name, bins=HEAT_BINS):
     cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.ax.set_ylabel("Natężenie (log1p)")
 
-    _save_both(fig,
-               os.path.join(PLOTS_DIR, out_name),
-               os.path.join(PLOTS_DIR, out_name.replace(".png", ".svg")))
+    _save_both(
+        fig,
+        os.path.join(PLOTS_DIR, out_name),
+        os.path.join(PLOTS_DIR, out_name.replace(".png", ".svg")),
+    )
+
 
 # --------------------
 # Main
@@ -567,7 +642,7 @@ def main():
         "matches": len(rows),
         "minutes": round(total_minutes, 1),
         "totals": {},
-        "per90": {}
+        "per90": {},
     }
     for k, v in agg.items():
         summary["totals"][k] = round(v, 3)
@@ -579,8 +654,12 @@ def main():
     # wykresy wysokiej jakości
     plot_trends(rows)
     plot_scatter_pp_vs_pc(rows)
-    plot_heatmap_points(all_pass_starts, "Heatmapa startów podań (Pedri)", "heatmap_pass_starts.png")
-    plot_heatmap_points(all_carry_starts, "Heatmapa startów carry (Pedri)", "heatmap_carry_starts.png")
+    plot_heatmap_points(
+        all_pass_starts, "Heatmapa startów podań (Pedri)", "heatmap_pass_starts.png"
+    )
+    plot_heatmap_points(
+        all_carry_starts, "Heatmapa startów carry (Pedri)", "heatmap_carry_starts.png"
+    )
 
     # skrót
     passes_total = int(summary["totals"].get("passes_total", 0))
@@ -589,13 +668,26 @@ def main():
     print("\n📊 PODSUMOWANIE (extended):")
     print(f"   Minuty: {summary['minutes']}")
     print(f"   Podania: {passes_completed}/{passes_total} ({pass_pct:.1f}%)")
-    print(f"   KP: {int(summary['totals'].get('key_passes',0))} | xA: {summary['totals'].get('xa',0.0):.3f}")
-    print(f"   PP: {int(summary['totals'].get('progressive_passes',0))} | PC: {int(summary['totals'].get('progressive_carries',0))}")
-    print(f"   Final third: {int(summary['totals'].get('passes_into_final_third',0))} | Pen area: {int(summary['totals'].get('passes_into_penalty_area',0))}")
-    print(f"   Deep completions: {int(summary['totals'].get('deep_completions',0))} | Switches: {int(summary['totals'].get('switches_of_play',0))}")
-    print(f"   Progressive receptions: {int(summary['totals'].get('progressive_receptions',0))}")
-    print(f"   Turnovers: {int(summary['totals'].get('turnovers',0))} | Pressures after loss: {int(summary['totals'].get('pressures_after_loss',0))}")
+    print(
+        f"   KP: {int(summary['totals'].get('key_passes',0))} | xA: {summary['totals'].get('xa',0.0):.3f}"
+    )
+    print(
+        f"   PP: {int(summary['totals'].get('progressive_passes',0))} | PC: {int(summary['totals'].get('progressive_carries',0))}"
+    )
+    print(
+        f"   Final third: {int(summary['totals'].get('passes_into_final_third',0))} | Pen area: {int(summary['totals'].get('passes_into_penalty_area',0))}"
+    )
+    print(
+        f"   Deep completions: {int(summary['totals'].get('deep_completions',0))} | Switches: {int(summary['totals'].get('switches_of_play',0))}"
+    )
+    print(
+        f"   Progressive receptions: {int(summary['totals'].get('progressive_receptions',0))}"
+    )
+    print(
+        f"   Turnovers: {int(summary['totals'].get('turnovers',0))} | Pressures after loss: {int(summary['totals'].get('pressures_after_loss',0))}"
+    )
     print(f"\n💾 Zapisano: {OUT_CSV}, {OUT_JSON} oraz wykresy w {PLOTS_DIR}/")
+
 
 if __name__ == "__main__":
     main()
