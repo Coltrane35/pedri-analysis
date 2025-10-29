@@ -26,3 +26,9 @@ pedri_*.json
 # local data
 data/
 pedri_*.json
+
+# build artifacts
+outputs/
+plots/
+logs/
+
