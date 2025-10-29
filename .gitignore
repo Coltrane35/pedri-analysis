@@ -18,3 +18,7 @@ project_tree.txt
 
 # Różne
 .DS_Store
+
+# local data
+data/
+pedri_*.json
