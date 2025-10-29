@@ -32,3 +32,9 @@ outputs/
 plots/
 logs/
 
+
+# build artifacts
+outputs/
+plots/
+logs/
+
