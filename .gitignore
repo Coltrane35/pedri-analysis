@@ -1,36 +1,20 @@
-﻿# Python caches / compiled
+﻿# Python / build
 __pycache__/
-*.py[cod]
-*.pyd
-*.so
-*.dll
+*.pyc
+*.pyo
 
-# Virtual env
+# Venv
+.venv/
 venv/
 
-# VS Code
+# IDE
 .vscode/
 
-# OS junk
-.DS_Store
-Thumbs.db
-
-# Local env (trzymamy tylko .env.example)
-.env
-
-# Raw data (nie wrzucamy do repo)
-data/events/
-data/lineups/
-data/matches/
-data/three-sixty/
-# jeśli chcesz trzymać metadane:
-!data/competitions.json
-
-# Outputs – alias kompatybilności (nie śledzić)
-outputs/csv/pedri_per_match_stats.csv
-
-# Notebooks cache
-**/.ipynb_checkpoints/
-
-# Logs
+# Artefakty projektu
+outputs/
+plots/
 logs/
+project_tree.txt
+
+# Różne
+.DS_Store
