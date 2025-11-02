@@ -38,3 +38,7 @@ outputs/
 plots/
 logs/
 
+
+.env
+.env.local
+!.env.example
