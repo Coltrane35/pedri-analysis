@@ -1,8 +1,8 @@
-name: Lint
+﻿name: Lint & Tests
 
 on:
   push:
-    branches: [ main, feature/*, chore/*, ci/* ]
+    branches: [ main, feature/*, chore/*, ci/*, test/* ]
   pull_request:
     branches: [ main ]
 
@@ -14,12 +14,12 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 black
+          pip install flake8 black pytest
 
       - name: Run flake8 (only existing dirs)
         run: |
@@ -36,3 +36,9 @@ jobs:
             if [ -d "$d" ]; then paths="$paths $d"; fi
           done
           if [ -n "$paths" ]; then black --check $paths; else echo "No code dirs found"; fi
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
+      - name: Run pytest (unit baseline)
+        run: pytest -q
