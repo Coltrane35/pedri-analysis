@@ -192,3 +192,6 @@ pedri-analysis/
 
 Projekt zakłada pliki events w formacie zgodnym ze StatsBomb-like.  
 Sprawdź licencję i warunki wykorzystania danych, z których korzystasz, zanim udostępnisz repo publicznie.
+
+
+![Lint & Tests](https://github.com/Coltrane35/pedri-analysis/actions/workflows/lint.yml/badge.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
