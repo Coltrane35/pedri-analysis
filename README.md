@@ -65,19 +65,14 @@ python core/pedri_analysis.py
 
 ```
 pedri-analysis/
-├─ automation/
-│  └─ run_all.py
-├─ core/                 # TYLKO .py (kod)
-│  ├─ pedri_analysis.py  # (analiza + radary + pass mapy)
-│  └─ utils/             # jeśli używasz
-├─ data/
-│  └─ events/*.json      # lokalnie, nie w repo
+├─ automation/run_all.py
+├─ core/                 # kod .py
+├─ data/events/*.json    # lokalnie, poza repo
 ├─ outputs/
-│  ├─ csv/               # CSV z wynikami
-│  └─ figures/           # PNG+SVG wykresów
-├─ .vscode/              # opcjonalnie: ustawienia workspace
-├─ .env                  # opcjonalnie
+│  ├─ csv/
+│  └─ figures/
 └─ README.md
+
 ```
 
 ---
@@ -188,7 +183,21 @@ pedri-analysis/
 
 ---
 
+
+## What I learned
+
+- ETL zdarzeń → spójne ramki danych
+
+- Idempotentny pipeline (powtarzalne CSV + wykresy)
+
+- Jakość: Black, flake8, PyTest (smoke), GitHub Actions
+
+- Traceability: match_id z nazwy pliku + source_file
+
 ## Licencja / Dane
 
 Projekt zakłada pliki events w formacie zgodnym ze StatsBomb-like.  
 Sprawdź licencję i warunki wykorzystania danych, z których korzystasz, zanim udostępnisz repo publicznie.
+
+
+![Lint & Tests](https://github.com/Coltrane35/pedri-analysis/actions/workflows/lint.yml/badge.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)

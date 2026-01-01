@@ -1,10 +1,17 @@
-﻿name: Lint
+name: Lint
 
 on:
   push:
-    branches: [ main, feature/*, chore/*, ci/* ]
+    branches: [ main, feature/*, chore/*, ci/*, test/* ]
   pull_request:
     branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
@@ -25,7 +32,7 @@ jobs:
         run: |
           set -e
           for d in core automation; do
-            if [ -d "" ]; then flake8 --config .flake8 ""; fi
+            if [ -d "$d" ]; then flake8 --config .flake8 "$d"; fi
           done
 
       - name: Run black check (only existing dirs)
@@ -33,6 +40,6 @@ jobs:
           set -e
           paths=""
           for d in core automation; do
-            if [ -d "" ]; then paths=" "; fi
+            if [ -d "$d" ]; then paths="$paths $d"; fi
           done
-          if [ -n "" ]; then black --check ; else echo "No code dirs found"; fi
+          if [ -n "$paths" ]; then black --check $paths; else echo "No code dirs found"; fi
