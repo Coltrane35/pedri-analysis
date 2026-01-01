@@ -65,19 +65,14 @@ python core/pedri_analysis.py
 
 ```
 pedri-analysis/
-├─ automation/
-│  └─ run_all.py
-├─ core/                 # TYLKO .py (kod)
-│  ├─ pedri_analysis.py  # (analiza + radary + pass mapy)
-│  └─ utils/             # jeśli używasz
-├─ data/
-│  └─ events/*.json      # lokalnie, nie w repo
+├─ automation/run_all.py
+├─ core/                 # kod .py
+├─ data/events/*.json    # lokalnie, poza repo
 ├─ outputs/
-│  ├─ csv/               # CSV z wynikami
-│  └─ figures/           # PNG+SVG wykresów
-├─ .vscode/              # opcjonalnie: ustawienia workspace
-├─ .env                  # opcjonalnie
+│  ├─ csv/
+│  └─ figures/
 └─ README.md
+
 ```
 
 ---
@@ -187,6 +182,17 @@ pedri-analysis/
   Upewnij się, że masz JSON-y w `data/events/` (i ew. podkatalogach). Nazwy powinny zawierać numery `match_id`.
 
 ---
+
+
+## What I learned
+
+- ETL zdarzeń → spójne ramki danych
+
+- Idempotentny pipeline (powtarzalne CSV + wykresy)
+
+- Jakość: Black, flake8, PyTest (smoke), GitHub Actions
+
+- Traceability: match_id z nazwy pliku + source_file
 
 ## Licencja / Dane
 
