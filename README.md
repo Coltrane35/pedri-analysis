@@ -1,203 +1,134 @@
 # pedri-analysis
 
-Profil gry **Pedriego** na danych zdarzeń (StatsBomb-like).  
-Skrypt liczy metryki per mecz i agregaty, a następnie generuje CSV + wizualizacje (bary, histogramy, **heatmapa**, **radary**, **pass mapy**).
+[![Lint & Tests](https://github.com/Coltrane35/pedri-analysis/actions/workflows/lint.yml/badge.svg)](https://github.com/Coltrane35/pedri-analysis/actions/workflows/lint.yml)
+![Python 3.11](https://img.shields.io/badge/Python-3.11-blue)
+![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
----
+Analiza profilu gry **Pedriego** na danych zdarzeń w formacie StatsBomb-like. Projekt skanuje mecze, buduje statystyki per mecz i per 90 minut, a następnie generuje CSV oraz wizualizacje: heatmapy, radary i mapy podań.
+
+<p align="center">
+  <img src="docs/figures/pedri_radar_p90_percentile.png" width="420" alt="Pedri percentile radar" />
+  <img src="docs/figures/pedri_event_heatmap_hexbin.png" width="420" alt="Pedri event heatmap" />
+</p>
 
 ## Najważniejsze cechy
 
-- `match_id` **zawsze** z nazwy pliku (`data/events/*1234567*.json`) — koniec z `unknown`.
-- Spójne artefakty w podkatalogach:
-  - **CSV** → `outputs/csv/`
-  - **Wykresy (PNG+SVG)** → `outputs/figures/`
-- Wizualizacje:
-  - Bary z etykietami (Top-20),
-  - Histogramy per90,
-  - Heatmapa zdarzeń na tle boiska,
-  - **Radary**: RAW p90 + percentyle,
-  - **Pass map**: wszystkie podania oraz tylko progressive.
-- Orkiestracja: `automation/run_all.py` (preferuje `venv`, działa **wyłącznie** w bieżącym repo).
-
----
+- analiza eventów Pedriego (`player.id = 30486`),
+- `match_id` wyznaczany z nazwy pliku źródłowego,
+- statystyki per mecz i metryki `*_p90`,
+- progressive passes, key passes, dryblingi, pressing, odbiory, przechwyty, strzały i xG,
+- heatmapa zdarzeń na boisku 120 × 80,
+- radar wartości surowych i radar percentylowy,
+- mapy wszystkich podań oraz podań progresywnych,
+- powtarzalny pipeline uruchamiany przez `automation/run_all.py`,
+- kontrola jakości kodu: Black, flake8, pytest i GitHub Actions.
 
 ## Wymagania
 
-- Python **3.10+** (działa także na 3.13)
-- Pakiety: `pandas`, `numpy`, `matplotlib`
+- Python 3.10+; CI używa Python 3.11,
+- zależności runtime znajdują się w `requirements.txt`.
 
-> Dane (`data/events/*.json`) **nie są** częścią repo – wgraj je lokalnie.
-
----
+Dane meczowe nie są częścią repozytorium. Umieść własne pliki JSON lokalnie w `data/events/`.
 
 ## Szybki start
 
-### 1) Klon i środowisko
 ```powershell
-git clone <URL repo>
+git clone https://github.com/Coltrane35/pedri-analysis.git
 cd pedri-analysis
 
 python -m venv venv
 .\venv\Scripts\Activate.ps1
-pip install -U pip
-pip install pandas numpy matplotlib
-```
+python -m pip install --upgrade pip
+pip install -r requirements.txt
 
-### 2) (Opcjonalnie) `.env`
-Dla Pythona/VS Code:
-```
-PYTHONPATH=${workspaceFolder};${workspaceFolder}/core
-```
-
-### 3) Uruchomienie
-Cała paczka:
-```powershell
 python automation/run_all.py
 ```
-albo sam analizator (generuje CSV + wszystkie wykresy, w tym radary i pass mapy):
+
+Możesz też uruchomić sam główny analizator:
+
 ```powershell
 python core/pedri_analysis.py
 ```
 
----
+## Struktura repozytorium
 
-## Struktura repo (docelowo)
-
-```
+```text
 pedri-analysis/
-├─ automation/run_all.py
-├─ core/                 # kod .py
-├─ data/events/*.json    # lokalnie, poza repo
-├─ outputs/
-│  ├─ csv/
-│  └─ figures/
-└─ README.md
-
+├─ .github/workflows/     # GitHub Actions
+├─ automation/            # orkiestracja pipeline
+├─ core/                  # główna logika analizy
+├─ utils/                 # pomocnicze funkcje i wizualizacje
+├─ tests/                 # smoke tests
+├─ docs/figures/          # przykładowe wykresy do README
+├─ data/                  # dane lokalne, ignorowane przez Git
+├─ outputs/               # generowane wyniki, ignorowane przez Git
+├─ methodology.md         # metodologia projektu
+├─ requirements.txt       # zależności runtime
+└─ requirements-ci.txt    # zależności CI
 ```
 
----
+## Wyniki
 
-## Wyniki (artefakty)
+Pipeline generuje między innymi:
 
-### CSV (`outputs/csv/`)
-- `pedri_match_stats.csv` – rdzeń per-mecz
-- `pedri_match_stats_extended.csv` – pełny per-mecz (w tym *_p90)
-- `pedri_summary.csv` – agregat 1-wierszowy
+### CSV
 
-> Alias zgodności: `pedri_per_match_stats.csv` — możesz wyłączyć z git (patrz `.gitignore`).
+- `outputs/csv/pedri_match_stats.csv`
+- `outputs/csv/pedri_match_stats_extended.csv`
+- `outputs/csv/pedri_summary.csv`
 
-### Wizualizacje (`outputs/figures/`)
-- **Bary**:
-  - `pedri_key_passes_per_match.(png|svg)`
-  - `pedri_prog_passes_per_match.(png|svg)`
-  - `pedri_pass_pct_per_match.(png|svg)`
-- **Histogramy per90**:
-  - `pedri_pressures_p90_hist.(png|svg)`
-  - `pedri_tackles_p90_hist.(png|svg)`
-  - `pedri_interceptions_p90_hist.(png|svg)`
-- **Heatmapa**:
-  - `pedri_event_heatmap_hexbin.(png|svg)`
-- **Radary**:
-  - `pedri_radar_p90_raw.(png|svg)`
-  - `pedri_radar_p90_percentile.(png|svg)`
-- **Pass maps**:
-  - `pedri_pass_map_all.(png|svg)`
-  - `pedri_pass_map_progressive.(png|svg)`
+### Wizualizacje
 
-### Podgląd w README (SVG wyglądają ostro na GitHubie)
-```md
-## Kluczowe wykresy
-![Key passes](outputs/figures/pedri_key_passes_per_match.svg)
-![Prog passes](outputs/figures/pedri_prog_passes_per_match.svg)
-![Pass %](outputs/figures/pedri_pass_pct_per_match.svg)
+- key passes per match,
+- progressive passes per match,
+- pass completion percentage,
+- histogramy pressing/tackles/interceptions per 90,
+- event heatmap,
+- radar RAW p90,
+- radar percentylowy,
+- pass map wszystkich podań,
+- pass map podań progresywnych.
 
-## Radar (per 90)
-![RAW](outputs/figures/pedri_radar_p90_raw.svg)
-![Percentile](outputs/figures/pedri_radar_p90_percentile.svg)
+## Jak działa pipeline
 
-## Pass maps
-![All passes](outputs/figures/pedri_pass_map_all.svg)
-![Progressive](outputs/figures/pedri_pass_map_progressive.svg)
+1. Skanuje `data/events/**/*.json`.
+2. Filtruje zdarzenia Pedriego.
+3. Buduje statystyki dla poszczególnych meczów.
+4. Szacuje minuty gry na podstawie eventów i zmian.
+5. Wylicza metryki per 90 minut.
+6. Eksportuje CSV oraz generuje wykresy.
+
+Szczegóły założeń analitycznych znajdują się w [`methodology.md`](methodology.md).
+
+## Jakość i CI
+
+GitHub Actions automatycznie uruchamia:
+
+```text
+flake8
+black --check
+pytest
 ```
 
----
+Lokalnie możesz wykonać te same kontrole:
 
-## Jak to działa (skrót)
-
-- Skan `data/events/**/*.json`, filtr eventów Pedriego (`player.id=30486`),
-- Liczenie per-mecz (podania, key passes, progressive, dryblingi, pressing, obrona, strzały, xG),
-- Szacowanie minut z eventów (substytucje / zakres czasów),
-- Metryki *_p90,
-- Eksport CSV (do `outputs/csv/`) i wizualizacje (do `outputs/figures/`),
-- Heatmapa na boisku 120x80 (skala StatsBomb-like),
-- Radary: RAW p90 (średnie) oraz percentyle względem rozkładu meczów Pedriego,
-- Pass map: strzałki start→koniec; osobno **progressive**.
-
----
-
-## VS Code (opcjonalnie)
-
-`.vscode/settings.json` — polecane:
-```json
-{
-  "files.autoSave": "afterDelay",
-  "files.autoSaveDelay": 1500,
-  "editor.formatOnSave": true,
-  "files.trimTrailingWhitespace": true,
-  "python.analysis.extraPaths": [
-    "${workspaceFolder}",
-    "${workspaceFolder}/core"
-  ],
-  "python.envFile": "${workspaceFolder}/.env"
-}
+```powershell
+pip install -r requirements-ci.txt
+flake8 --config .flake8 core automation
+black --check core automation
+pytest -q tests
 ```
 
----
+## Czego nauczyłem się w projekcie
 
-## Git: co commitować?
+- przetwarzania tysięcy zdarzeń JSON do spójnych danych tabelarycznych,
+- budowania powtarzalnego pipeline ETL/analitycznego,
+- tworzenia metryk i wizualizacji football analytics,
+- zachowania traceability poprzez `match_id` i `source_file`,
+- pracy z Git, pull requestami i GitHub Actions,
+- stosowania Black, flake8 i prostych testów automatycznych.
 
-**Tak:**
-- `core/pedri_analysis.py`, `automation/run_all.py`, ustawienia (`.vscode/`, `.env` jeśli chcesz),
-- `outputs/csv/*.csv`,
-- `outputs/figures/*.png`, `outputs/figures/*.svg`.
+## Dane i licencja
 
-**Nie (opcjonalnie):**
-- `outputs/csv/pedri_per_match_stats.csv` (alias).
-  Dodaj do `.gitignore`:
-  ```gitignore
-  outputs/csv/pedri_per_match_stats.csv
-  ```
-
----
-
-## FAQ / Troubleshooting
-
-- **Matplotlib: `tick_params(..., ha=...)` błąd.**  
-  Użyj obrót w `tick_params(labelrotation=45)`, wyrównanie przez `for lab in ax.get_xticklabels(): lab.set_ha("right")` (już zaimplementowane).
-
-- **Uruchamia się z innej ścieżki (literówka w nazwie katalogu).**  
-  `automation/run_all.py` jest „strict” – odpala **tylko** skrypty z `<ROOT>/core` lub `<ROOT>`. Używaj tej wersji orkiestratora.
-
-- **Brak danych.**  
-  Upewnij się, że masz JSON-y w `data/events/` (i ew. podkatalogach). Nazwy powinny zawierać numery `match_id`.
-
----
-
-
-## What I learned
-
-- ETL zdarzeń → spójne ramki danych
-
-- Idempotentny pipeline (powtarzalne CSV + wykresy)
-
-- Jakość: Black, flake8, PyTest (smoke), GitHub Actions
-
-- Traceability: match_id z nazwy pliku + source_file
-
-## Licencja / Dane
-
-Projekt zakłada pliki events w formacie zgodnym ze StatsBomb-like.  
-Sprawdź licencję i warunki wykorzystania danych, z których korzystasz, zanim udostępnisz repo publicznie.
-
-
-![Lint & Tests](https://github.com/Coltrane35/pedri-analysis/actions/workflows/lint.yml/badge.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+Kod projektu jest dostępny na licencji MIT. Dane StatsBomb-like należy pozyskać i wykorzystywać zgodnie z warunkami ich źródła; nie są one dystrybuowane w tym repozytorium.
