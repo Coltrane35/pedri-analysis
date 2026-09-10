@@ -1,44 +1,30 @@
-﻿# Python / build
+# Python
 __pycache__/
 *.pyc
 *.pyo
 
-# Venv
+# Virtual environments
 .venv/
 venv/
 
 # IDE
 .vscode/
 
-# Artefakty projektu
+# Local configuration
+.env
+.env.local
+!.env.example
+
+# Local data
+data/
+pedri_*.json
+
+# Generated artifacts
 outputs/
 plots/
 logs/
 project_tree.txt
+audit_report.txt
 
-# Różne
+# OS files
 .DS_Store
-
-# local data
-data/
-pedri_*.json
-
-# local data
-data/
-pedri_*.json
-
-# build artifacts
-outputs/
-plots/
-logs/
-
-
-# build artifacts
-outputs/
-plots/
-logs/
-
-
-.env
-.env.local
-!.env.example
