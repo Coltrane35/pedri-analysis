@@ -31,6 +31,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
 
+from core.minutes import estimate_minutes, per90 as calculate_per90
+
 # ----------------- config -----------------
 PEDRI_ID = 30486
 EVENTS_DIR = os.path.join("data", "events")
@@ -199,23 +201,10 @@ def lineup_position_for_pedri(events):
 
 
 def minutes_played_estimate(events):
-    on_min, off_min = 0.0, None
-    for ev in events:
-        if safe_get(ev, ("type", "name")) == "Substitution":
-            out_player = safe_get(ev, ("substitution", "replacement", "id"))
-            in_player = safe_get(ev, ("player", "id"))
-            minute = event_minute(ev)
-            if in_player == PEDRI_ID:
-                off_min = minute
-            if out_player == PEDRI_ID:
-                on_min = minute
-    if off_min is not None:
-        return max(0.0, min(95.0, off_min - on_min))
-    times = [event_minute(e) for e in events if is_pedri_event(e)]
-    if times:
-        est = max(times) - min(times)
-        return max(10.0, min(95.0, est))
-    return 0.0
+    """Compatibility wrapper: return None if the timeline is unreliable."""
+    minutes, _ = estimate_minutes(events, PEDRI_ID)
+    return minutes
+
 
 
 def match_id_from_filename(file_hint: str | None) -> str:
@@ -236,7 +225,7 @@ def compute_stats_for_match(events, file_hint: str | None = None):
     match_id = match_id_from_filename(file_hint)  # always from filename
     match_date = match_date_from_events(events)
     position = lineup_position_for_pedri(events)
-    minutes = minutes_played_estimate(events)
+    minutes, minutes_details = estimate_minutes(events, PEDRI_ID)
 
     total_pass = sum(is_pass(e) for e in pedri_events)
     comp_pass = sum(is_completed_pass(e) for e in pedri_events)
@@ -264,13 +253,16 @@ def compute_stats_for_match(events, file_hint: str | None = None):
     recover = sum(is_ball_recovery(e) for e in pedri_events)
 
     pass_pct = (comp_pass / total_pass * 100.0) if total_pass else 0.0
-    per90 = lambda x: (x / minutes * 90.0) if minutes > 0 else 0.0
+    per90_metric = lambda x: calculate_per90(x, minutes)
 
     return {
         "match_id": match_id,
         "match_date": match_date,
         "position": position,
-        "minutes": round(minutes, 1),
+        "minutes": round(minutes, 1) if minutes is not None else float("nan"),
+        "minutes_status": minutes_details["reason"],
+        "entered_from_bench": minutes_details.get("entered", False),
+        "substituted_off": minutes_details.get("exited", False),
         "passes_attempted": int(total_pass),
         "passes_completed": int(comp_pass),
         "pass_pct": round(pass_pct, 1),
@@ -286,15 +278,15 @@ def compute_stats_for_match(events, file_hint: str | None = None):
         "tackles": int(tackles),
         "interceptions": int(intercp),
         "ball_recoveries": int(recover),
-        "key_passes_p90": round(per90(key_passes), 2),
-        "prog_passes_p90": round(per90(prog_pass), 2),
-        "dribbles_completed_p90": round(per90(drib_succ), 2),
-        "pressures_p90": round(per90(pressures), 2),
-        "tackles_p90": round(per90(tackles), 2),
-        "interceptions_p90": round(per90(intercp), 2),
-        "ball_recoveries_p90": round(per90(recover), 2),
-        "shots_p90": round(per90(shots), 2),
-        "xg_p90": round(per90(xg), 3),
+        "key_passes_p90": round(per90_metric(key_passes), 2),
+        "prog_passes_p90": round(per90_metric(prog_pass), 2),
+        "dribbles_completed_p90": round(per90_metric(drib_succ), 2),
+        "pressures_p90": round(per90_metric(pressures), 2),
+        "tackles_p90": round(per90_metric(tackles), 2),
+        "interceptions_p90": round(per90_metric(intercp), 2),
+        "ball_recoveries_p90": round(per90_metric(recover), 2),
+        "shots_p90": round(per90_metric(shots), 2),
+        "xg_p90": round(per90_metric(xg), 3),
         "source_file": str(file_hint) if file_hint else None,
     }
 
@@ -500,6 +492,9 @@ def generate_pedri_radars(df: pd.DataFrame):
         return
     raw_mean = df[cols].mean(numeric_only=True)
     raw_vals = raw_mean.values.astype(float)
+    if not np.isfinite(raw_vals).any():
+        print("⚠️  Radar: no valid /90 data")
+        return
     axis_labels = [RADAR_LABELS.get(c, c) for c in cols]
     rmax = max(1.0, float(np.nanmax(raw_vals)) * 1.1)
     _radar_plot(
@@ -617,6 +612,9 @@ def main():
 
     df = pd.DataFrame(per_match)
     df["match_id"] = df["match_id"].astype(str)
+    invalid_minutes = df["minutes"].isna() | (df["minutes"] <= 0)
+    if invalid_minutes.any():
+        print(f"⚠️  {invalid_minutes.sum()} match(es) with invalid minutes: /90 is NaN")
 
     def parse_dt(x):
         if x:
@@ -663,7 +661,9 @@ def main():
     # ---- Summary ----
     agg = {
         "matches": len(df),
-        "minutes_total": float(df["minutes"].sum()),
+        "minutes_total": float(df["minutes"].sum(min_count=1)),
+        "matches_with_valid_minutes": int((~invalid_minutes).sum()),
+        "matches_with_invalid_minutes": int(invalid_minutes.sum()),
         "passes_attempted": int(df["passes_attempted"].sum()),
         "passes_completed": int(df["passes_completed"].sum()),
         "pass_pct_weighted": (
@@ -686,6 +686,19 @@ def main():
         "interceptions": int(df["interceptions"].sum()),
         "ball_recoveries": int(df["ball_recoveries"].sum()),
     }
+    # Aggregate /90 must use the sum of counts and the sum of valid minutes.
+    # Exclude invalid-minute matches from both numerator and denominator.
+    valid_df = df.loc[~invalid_minutes]
+    valid_minutes = float(valid_df["minutes"].sum())
+    for metric in (
+        "key_passes", "progressive_passes", "shots", "xg",
+        "dribbles_completed", "pressures", "tackles", "interceptions",
+        "ball_recoveries",
+    ):
+        agg[f"{metric}_p90"] = calculate_per90(
+            valid_df[metric].sum(), valid_minutes
+        )
+
     summary_path = os.path.join(CSV_DIR, "pedri_summary.csv")
     pd.DataFrame([agg]).to_csv(summary_path, index=False, encoding="utf-8")
     print(f"💾 Saved: {summary_path}")
