@@ -2,74 +2,160 @@
 
 Minutes are estimates from event timestamps, not official minutes.
 """
+
 from __future__ import annotations
 
 import math
 
 
 def name(event):
-    return (event.get('type') or {}).get('name')
+    return (event.get("type") or {}).get("name")
 
 
 def clock(event):
     try:
-        minute = float(event['minute'])
-        second = float(event.get('second', 0))
+        minute = float(event["minute"])
+        second = float(event.get("second", 0))
+
         value = minute + second / 60
+
         if not math.isfinite(value) or value < 0:
             return None
+
         return value
+
     except (KeyError, TypeError, ValueError, OverflowError):
         return None
 
 
 def estimate_minutes(events, player_id=30486):
-    """Return (minutes|None, details). None signals insufficient/inconsistent evidence.
+    """Return (minutes | None, details).
 
-    Uses global match clock in StatsBomb minute/second. No 95-minute cap.
+    None means that the event timeline is insufficient or inconsistent.
+
+    Rules:
+    - starter -> starts at 0.0
+    - substitute -> starts at substitution entry time
+    - substituted player -> stops at substitution time
+    - otherwise stops at the final Half End of periods 1-4
+    - period 5 (penalty shootout) is ignored
+    - no artificial 95-minute cap
     """
+
     starts = any(
-        name(e) == 'Starting XI' and any(
-            (p.get('player') or {}).get('id') == player_id
-            for p in ((e.get('tactics') or {}).get('lineup') or [])
-        ) for e in events
+        name(event) == "Starting XI"
+        and any(
+            (player.get("player") or {}).get("id") == player_id
+            for player in ((event.get("tactics") or {}).get("lineup") or [])
+        )
+        for event in events
     )
+
     incoming = []
     outgoing = []
-    for e in events:
-        if name(e) != 'Substitution':
-            continue
-        t = clock(e)
-        if t is None:
-            continue
-        if ((e.get('substitution') or {}).get('replacement') or {}).get('id') == player_id:
-            incoming.append(t)
-        if (e.get('player') or {}).get('id') == player_id:
-            outgoing.append(t)
 
-    ends = [clock(e) for e in events if name(e) == 'Half End']
-    ends = [t for t in ends if t is not None]
+    for event in events:
+        if name(event) != "Substitution":
+            continue
+
+        event_time = clock(event)
+
+        if event_time is None:
+            continue
+
+        replacement_id = (
+            ((event.get("substitution") or {}).get("replacement") or {}).get("id")
+        )
+
+        outgoing_id = (event.get("player") or {}).get("id")
+
+        if replacement_id == player_id:
+            incoming.append(event_time)
+
+        if outgoing_id == player_id:
+            outgoing.append(event_time)
+
+    # Period 5 is a penalty shootout and must not count
+    # towards playing time.
+    ends = [
+        clock(event)
+        for event in events
+        if name(event) == "Half End"
+        and event.get("period") in (1, 2, 3, 4)
+    ]
+
+    ends = [event_time for event_time in ends if event_time is not None]
+
     if not ends:
-        return None, {'reason': 'missing_half_end', 'starts': starts}
-    end = max(ends)
+        return None, {
+            "reason": "missing_half_end",
+            "starts": starts,
+        }
+
+    match_end = max(ends)
+
     if starts and incoming:
-        return None, {'reason': 'conflicting_start_and_entry', 'starts': starts}
+        return None, {
+            "reason": "conflicting_start_and_entry",
+            "starts": starts,
+        }
+
     if len(incoming) > 1 or len(outgoing) > 1:
-        return None, {'reason': 'multiple_substitutions', 'starts': starts}
+        return None, {
+            "reason": "multiple_substitutions",
+            "starts": starts,
+        }
+
     if not starts and not incoming:
-        return None, {'reason': 'no_start_or_entry', 'starts': starts}
-    start = 0.0 if starts else incoming[0]
-    stop = outgoing[0] if outgoing else end
-    if stop < start or stop > end + 0.25:
-        return None, {'reason': 'invalid_interval', 'start': start, 'stop': stop, 'match_end': end}
-    return round(stop - start, 3), {
-        'reason': 'estimated', 'starts': starts, 'start': start,
-        'stop': stop, 'match_end': end, 'entered': bool(incoming), 'exited': bool(outgoing)
+        return None, {
+            "reason": "no_start_or_entry",
+            "starts": starts,
+        }
+
+    start_time = 0.0 if starts else incoming[0]
+    stop_time = outgoing[0] if outgoing else match_end
+
+    if stop_time < start_time or stop_time > match_end + 0.25:
+        return None, {
+            "reason": "invalid_interval",
+            "start": start_time,
+            "stop": stop_time,
+            "match_end": match_end,
+        }
+
+    minutes = round(stop_time - start_time, 3)
+
+    return minutes, {
+        "reason": "estimated",
+        "starts": starts,
+        "start": start_time,
+        "stop": stop_time,
+        "match_end": match_end,
+        "entered": bool(incoming),
+        "exited": bool(outgoing),
     }
 
 
 def per90(value, minutes):
-    """Missing/invalid denominator yields NaN, never a misleading zero."""
-    if minutes is None or not math.isfinite(float(minutes)) or minutes <= 0:
-        return float('nan')
-    return float(value) * 90.0 / float(minutes)
+    """Calculate per-90 metric.
+
+    Missing, zero or invalid minutes return NaN instead of
+    a misleading zero.
+    """
+
+    if minutes is None:
+        return float("nan")
+
+    try:
+        minutes = float(minutes)
+        value = float(value)
+    except (TypeError, ValueError):
+        return float("nan")
+
+    if not math.isfinite(minutes) or minutes <= 0:
+        return float("nan")
+
+    if not math.isfinite(value):
+        return float("nan")
+
+    return value * 90.0 / minutes
