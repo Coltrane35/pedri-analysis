@@ -56,7 +56,7 @@ python automation/run_all.py
 ```
 albo sam analizator (generuje CSV + wszystkie wykresy, w tym radary i pass mapy):
 ```powershell
-python core/pedri_analysis.py
+python -m core.pedri_analysis
 ```
 
 ---
@@ -104,21 +104,11 @@ pedri-analysis/
   - `pedri_pass_map_all.(png|svg)`
   - `pedri_pass_map_progressive.(png|svg)`
 
-### Podgląd w README (SVG wyglądają ostro na GitHubie)
-```md
-## Kluczowe wykresy
-![Key passes](outputs/figures/pedri_key_passes_per_match.svg)
-![Prog passes](outputs/figures/pedri_prog_passes_per_match.svg)
-![Pass %](outputs/figures/pedri_pass_pct_per_match.svg)
+### Wybrane wykresy
 
-## Radar (per 90)
-![RAW](outputs/figures/pedri_radar_p90_raw.svg)
-![Percentile](outputs/figures/pedri_radar_p90_percentile.svg)
+![Event heatmap](docs/figures/pedri_event_heatmap_hexbin.png)
 
-## Pass maps
-![All passes](outputs/figures/pedri_pass_map_all.svg)
-![Progressive](outputs/figures/pedri_pass_map_progressive.svg)
-```
+![Percentiles against Pedri's own matches](docs/figures/pedri_radar_p90_percentile.png)
 
 ---
 
@@ -154,19 +144,16 @@ pedri-analysis/
 
 ---
 
-## Git: co commitować?
+## Git
 
-**Tak:**
-- `core/pedri_analysis.py`, `automation/run_all.py`, ustawienia (`.vscode/`, `.env` jeśli chcesz),
-- `outputs/csv/*.csv`,
-- `outputs/figures/*.png`, `outputs/figures/*.svg`.
+Kod, testy, konfiguracja CI i dokumentacja są wersjonowane.
 
-**Nie (opcjonalnie):**
-- `outputs/csv/pedri_per_match_stats.csv` (alias).
-  Dodaj do `.gitignore`:
-  ```gitignore
-  outputs/csv/pedri_per_match_stats.csv
-  ```
+Katalogi `data/`, `outputs/`, `logs/`, `venv/`, `.venv/`,
+`.vscode/` i lokalne pliki `.env` są ignorowane przez `.gitignore`.
+
+Wybrane wykresy do prezentacji projektu kopiuj z `outputs/figures/`
+do `docs/figures/` i dodawaj do Git.
+W README stosuj linki do `docs/figures/`.
 
 ---
 

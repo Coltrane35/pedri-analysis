@@ -1,4 +1,4 @@
-name: Lint
+name: Lint & Tests
 
 on:
   push:
@@ -43,3 +43,6 @@ jobs:
             if [ -d "$d" ]; then paths="$paths $d"; fi
           done
           if [ -n "$paths" ]; then black --check $paths; else echo "No code dirs found"; fi
+
+      - name: Run tests
+        run: python -m pytest -q tests
