@@ -18,7 +18,7 @@ def iter_event_files() -> Iterator[Path]:
     if not EVENTS_DIR.exists():
         print_safe(f"⚠️  Katalog {EVENTS_DIR} nie istnieje.")
         return iter(())
-    return (p for p in sorted(EVENTS_DIR.glob("*.json")) if p.is_file())
+    return (p for p in sorted(EVENTS_DIR.rglob("*.json")) if p.is_file())
 
 
 def load_events(path: Path) -> Optional[list[Dict[str, Any]]]:
