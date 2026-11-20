@@ -206,7 +206,6 @@ def minutes_played_estimate(events):
     return minutes
 
 
-
 def match_id_from_filename(file_hint: str | None) -> str:
     """Robust: pull digits from filename stem; fallback to stem."""
     if not file_hint:
@@ -691,13 +690,17 @@ def main():
     valid_df = df.loc[~invalid_minutes]
     valid_minutes = float(valid_df["minutes"].sum())
     for metric in (
-        "key_passes", "progressive_passes", "shots", "xg",
-        "dribbles_completed", "pressures", "tackles", "interceptions",
+        "key_passes",
+        "progressive_passes",
+        "shots",
+        "xg",
+        "dribbles_completed",
+        "pressures",
+        "tackles",
+        "interceptions",
         "ball_recoveries",
     ):
-        agg[f"{metric}_p90"] = calculate_per90(
-            valid_df[metric].sum(), valid_minutes
-        )
+        agg[f"{metric}_p90"] = calculate_per90(valid_df[metric].sum(), valid_minutes)
 
     summary_path = os.path.join(CSV_DIR, "pedri_summary.csv")
     pd.DataFrame([agg]).to_csv(summary_path, index=False, encoding="utf-8")

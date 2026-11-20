@@ -17,9 +17,7 @@ def load(path):
 
 
 def main():
-    files = sorted(
-        glob.glob(os.path.join(EVENTS_DIR, "**", "*.json"), recursive=True)
-    )
+    files = sorted(glob.glob(os.path.join(EVENTS_DIR, "**", "*.json"), recursive=True))
     matches = 0
     positions = Counter()
 

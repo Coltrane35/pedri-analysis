@@ -64,8 +64,8 @@ def estimate_minutes(events, player_id=30486):
             continue
 
         replacement_id = (
-            ((event.get("substitution") or {}).get("replacement") or {}).get("id")
-        )
+            (event.get("substitution") or {}).get("replacement") or {}
+        ).get("id")
 
         outgoing_id = (event.get("player") or {}).get("id")
 
@@ -80,8 +80,7 @@ def estimate_minutes(events, player_id=30486):
     ends = [
         clock(event)
         for event in events
-        if name(event) == "Half End"
-        and event.get("period") in (1, 2, 3, 4)
+        if name(event) == "Half End" and event.get("period") in (1, 2, 3, 4)
     ]
 
     ends = [event_time for event_time in ends if event_time is not None]
